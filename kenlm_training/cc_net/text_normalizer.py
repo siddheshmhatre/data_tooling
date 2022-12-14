@@ -156,6 +156,8 @@ def normalize_spacing_for_tok(text: str, language: str = "en") -> str:
 
 
 def normalize(line: str, accent=True, case=True, numbers=True, punct=1) -> str:
+    if line is None: return line
+
     line = line.strip()
     if not line:
         return line
