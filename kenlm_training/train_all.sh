@@ -2,8 +2,10 @@
 set -e
 
 # Languages to train on
-LANGUAGES_WIKIPEDIA=( "es" "af" "ar" "arz" "as" "bn" "fr" "sw" "eu" "ca" "zh" "en" "hi" "ur" "id" "pt" "vi" "gu" "kn" "ml" "mr" "ta" "te" "yo" )
-LANGUAGES_OSCAR=( "es" "af" "ar" "arz" "as" "bn" "fr" "sw" "eu" "ca" "zh" "en" "hi" "ur" "id" "pt" "vi" "gu" "kn" "ml" "mr" "te" )
+LANGUAGES_WIKIPEDIA=( "en" )
+# "af" "ar" "arz" "as" "bn" "fr" "sw" "eu" "ca" "zh" "en" "hi" "ur" "id" "pt" "vi" "gu" "kn" "ml" "mr" "ta" "te" "yo" )
+LANGUAGES_OSCAR=( "en" )
+# "af" "ar" "arz" "as" "bn" "fr" "sw" "eu" "ca" "zh" "en" "hi" "ur" "id" "pt" "vi" "gu" "kn" "ml" "mr" "te" )
 
 NDOC_FOR_LM=1_000_000
 VOCAB_SIZE=65536
@@ -22,6 +24,7 @@ NDOC_FOR_LM_OSCAR=1_000_000
 train_language_and_dataset () {
     local lang=$1
     local dataset=$2
+
     if [ "$dataset" = "wikipedia" ]; then
         # 1 Download Wikipedia cirrus
         if [ -f "data/${dataset}/cirrus/gz/${lang}.json.gz" ]; then
@@ -50,14 +53,13 @@ train_language_and_dataset () {
     else
         # 1 & 2 Download and preprocess dataset from HF hub
         if [ -f "data/${dataset}/cirrus/gz/${lang}.opening.txt" ]; then
-            echo "Wikipedia openings were already extracted for ${lang}"
+            echo "${dataset} openings were already extracted for ${lang}"
         else
-            echo "Downloading OSCAR ${lang}"
+            echo "Downloading ${dataset} ${lang}"
             mkdir -p "data/${dataset}/cirrus/gz/"
             python cc_net/get_hf_dataset.py dl \
                 --dataset "${dataset}" \
                 --output_file "data/${dataset}/cirrus/gz/${lang}.opening.txt" \
-                --name "unshuffled_deduplicated_${lang}" \
                 --split "train" \
                 --max_docs $NDOC_FOR_LM_OSCAR
         fi
@@ -122,12 +124,12 @@ train_language_and_dataset () {
 
 
 
-for lang in "${LANGUAGES_WIKIPEDIA[@]}"
-do
-    train_language_and_dataset "$lang" wikipedia
-done
+#for lang in "${LANGUAGES_WIKIPEDIA[@]}"
+#do
+#    train_language_and_dataset "$lang" wikipedia
+#done
 
 for lang in "${LANGUAGES_OSCAR[@]}"
 do
-    train_language_and_dataset "$lang" oscar
+    train_language_and_dataset "$lang" laion/laion2B-en
 done
