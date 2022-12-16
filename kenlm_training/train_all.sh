@@ -7,6 +7,9 @@ LANGUAGES_WIKIPEDIA=( "en" )
 LANGUAGES_OSCAR=( "en" )
 # "af" "ar" "arz" "as" "bn" "fr" "sw" "eu" "ca" "zh" "en" "hi" "ur" "id" "pt" "vi" "gu" "kn" "ml" "mr" "te" )
 
+LANGUAGES_LAION=( "en" )
+# "af" "ar" "arz" "as" "bn" "fr" "sw" "eu" "ca" "zh" "en" "hi" "ur" "id" "pt" "vi" "gu" "kn" "ml" "mr" "te" )
+
 NDOC_FOR_LM=1_000_000
 VOCAB_SIZE=65536
 SMALL_VOCAB_SIZE=40000
@@ -129,7 +132,12 @@ train_language_and_dataset () {
 #    train_language_and_dataset "$lang" wikipedia
 #done
 
-for lang in "${LANGUAGES_OSCAR[@]}"
+#for lang in "${LANGUAGES_OSCAR[@]}"
+#do
+#    train_language_and_dataset "$lang" laion/laion2B-en
+#done
+
+for lang in "${LANGUAGES_LAION[@]}"
 do
     train_language_and_dataset "$lang" laion/laion2B-en
 done
