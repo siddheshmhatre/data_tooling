@@ -53,6 +53,21 @@ train_language_and_dataset () {
                 --numbers ${NORMALIZE_NUMBERS} \
                 --punct ${NORMALIZE_PUNCT}
         fi
+    elif [ "$dataset" = "laion/laion2B-en" ]; then
+        # 1 & 2 Download and preprocess dataset from HF hub
+        if [ -f "data/${dataset}/cirrus/gz/${lang}.opening.txt" ]; then
+            echo "${dataset} openings were already extracted for ${lang}"
+        else
+            echo "Downloading ${dataset} ${lang}"
+            mkdir -p "data/${dataset}/cirrus/gz/"
+            python cc_net/get_hf_dataset.py dl \
+                --dataset "${dataset}" \
+                --output_file "data/${dataset}/cirrus/gz/${lang}.opening.txt" \
+                --split "train" \
+                --max_docs $NDOC_FOR_LM_OSCAR
+                --text_key "TEXT"
+        fi
+
     else
         # 1 & 2 Download and preprocess dataset from HF hub
         if [ -f "data/${dataset}/cirrus/gz/${lang}.opening.txt" ]; then
@@ -65,6 +80,7 @@ train_language_and_dataset () {
                 --output_file "data/${dataset}/cirrus/gz/${lang}.opening.txt" \
                 --split "train" \
                 --max_docs $NDOC_FOR_LM_OSCAR
+                --text_key "text"
         fi
     fi
 
@@ -137,7 +153,17 @@ train_language_and_dataset () {
 #    train_language_and_dataset "$lang" laion/laion2B-en
 #done
 
+#for lang in "${LANGUAGES_LAION[@]}"
+#do
+#    train_language_and_dataset "$lang" laion/laion2B-en
+#done
+
 for lang in "${LANGUAGES_LAION[@]}"
 do
-    train_language_and_dataset "$lang" laion/laion2B-en
+    train_language_and_dataset "$lang" the_pile_books3
 done
+
+#for lang in "${LANGUAGES_LAION[@]}"
+#do
+#    train_language_and_dataset "$lang" ChristophSchuhmann/screenplays
+#done
