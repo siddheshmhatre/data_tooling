@@ -21,13 +21,14 @@ NORMALIZE_NUMBERS=True
 NORMALIZE_PUNCT=1
 
 # OSCAR and OTHERS
-NDOC_FOR_LM_OSCAR=500_000_000
+NDOC_FOR_LM_OSCAR=200_000
 
 
 train_language_and_dataset () {
     local lang=$1
     local dataset=$2
-
+    local text_key=$3
+    
     if [ "$dataset" = "wikipedia" ]; then
         # 1 Download Wikipedia cirrus
         if [ -f "data/${dataset}/cirrus/gz/${lang}.json.gz" ]; then
@@ -53,21 +54,6 @@ train_language_and_dataset () {
                 --numbers ${NORMALIZE_NUMBERS} \
                 --punct ${NORMALIZE_PUNCT}
         fi
-    elif [ "$dataset" = "laion/laion2B-en" ]; then
-        # 1 & 2 Download and preprocess dataset from HF hub
-        if [ -f "data/${dataset}/cirrus/gz/${lang}.opening.txt" ]; then
-            echo "${dataset} openings were already extracted for ${lang}"
-        else
-            echo "Downloading ${dataset} ${lang}"
-            mkdir -p "data/${dataset}/cirrus/gz/"
-            python cc_net/get_hf_dataset.py dl \
-                --dataset "${dataset}" \
-                --output_file "data/${dataset}/cirrus/gz/${lang}.opening.txt" \
-                --split "train" \
-                --max_docs $NDOC_FOR_LM_OSCAR
-                --text_key "TEXT"
-        fi
-
     else
         # 1 & 2 Download and preprocess dataset from HF hub
         if [ -f "data/${dataset}/cirrus/gz/${lang}.opening.txt" ]; then
@@ -79,8 +65,8 @@ train_language_and_dataset () {
                 --dataset "${dataset}" \
                 --output_file "data/${dataset}/cirrus/gz/${lang}.opening.txt" \
                 --split "train" \
-                --max_docs $NDOC_FOR_LM_OSCAR
-                --text_key "text"
+                --max_docs $NDOC_FOR_LM_OSCAR \
+                --text_key ${text_key} 
         fi
     fi
 
@@ -100,7 +86,7 @@ train_language_and_dataset () {
             --vocab_size=${SMALL_VOCAB_SIZE} \
             --character_coverage=0.9995 \
             --model_type=unigram \
-            --model_prefix="data/${dataset}/lm_sp/${lang}.sp"
+            --model_prefix="data/${dataset}/lm_sp/${lang}.sp" \
 
         echo "Trained SentencePiece model with $(wc -l data/"${dataset}"/lm_sp/"${lang}".sp.vocab) pieces"
     fi
@@ -160,10 +146,10 @@ train_language_and_dataset () {
 
 for lang in "${LANGUAGES_LAION[@]}"
 do
-    train_language_and_dataset "$lang" the_pile_books3
+    train_language_and_dataset "$lang" the_pile_books3 "text"
 done
 
 #for lang in "${LANGUAGES_LAION[@]}"
 #do
-#    train_language_and_dataset "$lang" ChristophSchuhmann/screenplays
+#    train_language_and_dataset "$lang" ChristophSchuhmann/screenplays "text"
 #done
