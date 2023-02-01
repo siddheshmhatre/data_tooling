@@ -144,12 +144,12 @@ train_language_and_dataset () {
 #    train_language_and_dataset "$lang" laion/laion2B-en
 #done
 
-for lang in "${LANGUAGES_LAION[@]}"
-do
-    train_language_and_dataset "$lang" the_pile_books3 "text"
-done
-
 #for lang in "${LANGUAGES_LAION[@]}"
 #do
-#    train_language_and_dataset "$lang" ChristophSchuhmann/screenplays "text"
+#    train_language_and_dataset "$lang" the_pile_books3 "text"
 #done
+
+for lang in "${LANGUAGES_LAION[@]}"
+do
+    train_language_and_dataset "$lang" ChristophSchuhmann/screenplays "text"
+done
