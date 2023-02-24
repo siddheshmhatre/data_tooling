@@ -10,7 +10,9 @@ LANGUAGES_OSCAR=( "en" )
 LANGUAGES_LAION=( "en" )
 # "af" "ar" "arz" "as" "bn" "fr" "sw" "eu" "ca" "zh" "en" "hi" "ur" "id" "pt" "vi" "gu" "kn" "ml" "mr" "te" )
 
-NDOC_FOR_LM=1_000_000
+LANGUAGES_CODE=( "Python" )
+
+NDOC_FOR_LM=100_000
 VOCAB_SIZE=65536
 SMALL_VOCAB_SIZE=40000
 
@@ -53,19 +55,19 @@ train_language_and_dataset () {
                 --numbers ${NORMALIZE_NUMBERS} \
                 --punct ${NORMALIZE_PUNCT}
         fi
-    elif [ "$dataset" = "laion/laion2B-en" ]; then
+    elif [ "$dataset" = "codeparrot/github-code-clean" ]; then
         # 1 & 2 Download and preprocess dataset from HF hub
-        if [ -f "data/${dataset}/cirrus/gz/${lang}.opening.txt" ]; then
+        if [ -f "data/${dataset}/${lang}.opening.txt" ]; then
             echo "${dataset} openings were already extracted for ${lang}"
         else
             echo "Downloading ${dataset} ${lang}"
-            mkdir -p "data/${dataset}/cirrus/gz/"
+            mkdir -p "data/${dataset}"
             python cc_net/get_hf_dataset.py dl \
                 --dataset "${dataset}" \
-                --output_file "data/${dataset}/cirrus/gz/${lang}.opening.txt" \
+                --output_file "data/${dataset}/${lang}.opening.txt" \
                 --split "train" \
-                --max_docs $NDOC_FOR_LM_OSCAR
-                --text_key "TEXT"
+                --max_docs $NDOC_FOR_LM \
+                --text_key "code"
         fi
 
     else
@@ -90,13 +92,13 @@ train_language_and_dataset () {
     else
         echo "Training sentence piece tokenizer for ${lang}"
         mkdir -p "data/${dataset}/lm_sp"
-        ./bin/spm_train --input="data/${dataset}/cirrus/gz/${lang}.opening.txt" \
+        ./bin/spm_train --input="data/${dataset}/${lang}.opening.txt" \
             --vocab_size=${VOCAB_SIZE} --hard_vocab_limit \
             --character_coverage=0.9995 \
             --model_type=unigram \
             --model_prefix="data/${dataset}/lm_sp/${lang}.sp" \
         || echo "WARNING: Corpus is too small, will train smaller model" && \
-        ./bin/spm_train --input="data/${dataset}/cirrus/gz/${lang}.opening.txt" \
+        ./bin/spm_train --input="data/${dataset}/${lang}.opening.txt" \
             --vocab_size=${SMALL_VOCAB_SIZE} \
             --character_coverage=0.9995 \
             --model_type=unigram \
@@ -106,15 +108,15 @@ train_language_and_dataset () {
     fi
 
     # 4 Tokenize openings dataset
-    if [ -f "data/${dataset}/cirrus/sp/${lang}.opening.txt" ]; then
+    if [ -f "data/${dataset}/sp/${lang}.opening.txt" ]; then
         echo "Openings dataset already tokenized for ${lang}"
     else
-        mkdir -p "data/${dataset}/cirrus/sp"
+        mkdir -p "data/${dataset}/sp"
         echo "Tokenizing openings dataset for ${lang}"
         ./bin/spm_encode \
             --model="data/${dataset}/lm_sp/${lang}.sp.model" \
             --output_format=piece \
-            "data/${dataset}/cirrus/gz/${lang}.opening.txt" > "data/${dataset}/cirrus/sp/${lang}.opening.txt"
+            "data/${dataset}/${lang}.opening.txt" > "data/${dataset}/sp/${lang}.opening.txt"
         echo "Tokenized openings dataset for ${lang}"
     fi
 
@@ -125,7 +127,7 @@ train_language_and_dataset () {
         echo "Training KenLM model for ${lang}"
         mkdir -p tmp
         ./bin/lmplz -o 5 -S 8G -T tmp --vocab_estimate ${VOCAB_SIZE}  --discount_fallback \
-            < "data/${dataset}/cirrus/sp/${lang}.opening.txt" > "data/${dataset}/lm_sp/${lang}.arpa"
+            < "data/${dataset}/sp/${lang}.opening.txt" > "data/${dataset}/lm_sp/${lang}.arpa"
         echo "Trained KenLM model for ${lang}"
     fi
 
@@ -158,12 +160,17 @@ train_language_and_dataset () {
 #    train_language_and_dataset "$lang" laion/laion2B-en
 #done
 
-for lang in "${LANGUAGES_LAION[@]}"
-do
-    train_language_and_dataset "$lang" the_pile_books3
-done
+#for lang in "${LANGUAGES_LAION[@]}"
+#do
+#    train_language_and_dataset "$lang" the_pile_books3
+#done
 
 #for lang in "${LANGUAGES_LAION[@]}"
 #do
 #    train_language_and_dataset "$lang" ChristophSchuhmann/screenplays
 #done
+
+for lang in "${LANGUAGES_CODE[@]}"
+do
+    train_language_and_dataset "$lang" codeparrot/github-code-clean
+done

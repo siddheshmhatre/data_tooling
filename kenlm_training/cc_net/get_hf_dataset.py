@@ -34,20 +34,12 @@ def dl(
         streaming=streaming,
     )
 
-    norm_text_key = text_key + "_norm"
-    dataset_norm = dataset.map(
-        lambda x: {norm_text_key : text_normalizer.normalize(
-            x[text_key], accent=accent, case=case, numbers=numbers, punct=punct
-        )}
-    )
-
-    print (next(iter(dataset_norm)))
-    dataset_norm = dataset_norm.shuffle(buffer_size=buffer_size, seed=seed)
+    dataset= dataset.shuffle(buffer_size=buffer_size, seed=seed)
     count = 0
     with open(output_file, "w") as o:
         with tqdm(total=max_docs) as pbar:
-            for doc in dataset_norm:
-                doc = doc[norm_text_key]
+            for doc in dataset:
+                doc = doc[text_key]
 
                 if doc is None:
                     continue
