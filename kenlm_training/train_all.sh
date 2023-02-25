@@ -10,7 +10,7 @@ LANGUAGES_OSCAR=( "en" )
 LANGUAGES_LAION=( "en" )
 # "af" "ar" "arz" "as" "bn" "fr" "sw" "eu" "ca" "zh" "en" "hi" "ur" "id" "pt" "vi" "gu" "kn" "ml" "mr" "te" )
 
-LANGUAGES_CODE=( "Python" )
+LANGUAGES_CODE=( "All" )
 
 NDOC_FOR_LM=100_000
 VOCAB_SIZE=65536
@@ -67,7 +67,8 @@ train_language_and_dataset () {
                 --output_file "data/${dataset}/${lang}.opening.txt" \
                 --split "train" \
                 --max_docs $NDOC_FOR_LM \
-                --text_key "code"
+                --text_key "code" \
+                --language ${lang}
         fi
 
     else

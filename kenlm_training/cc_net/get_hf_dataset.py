@@ -22,8 +22,10 @@ def dl(
     max_docs: Optional[int] = None,
     seed: int = 0,
     buffer_size: int = 10000,
-    text_key: str = "TEXT"
+    text_key: str = "TEXT",
+    language: str = "Python"
 ):
+    languages = ['C', 'Python', 'Java', 'PHP', 'C++']
     """Download dataset from the Hugging Face hub."""
     dataset = load_dataset(
         dataset,
@@ -32,6 +34,7 @@ def dl(
         data_files=data_files,
         split=split,
         streaming=streaming,
+        languages=languages
     )
 
     dataset= dataset.shuffle(buffer_size=buffer_size, seed=seed)
