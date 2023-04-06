@@ -10,7 +10,7 @@ LANGUAGES_OSCAR=( "en" )
 LANGUAGES_LAION=( "en" )
 # "af" "ar" "arz" "as" "bn" "fr" "sw" "eu" "ca" "zh" "en" "hi" "ur" "id" "pt" "vi" "gu" "kn" "ml" "mr" "te" )
 
-NDOC_FOR_LM=1_000_000
+NDOC_FOR_LM=10000
 VOCAB_SIZE=65536
 SMALL_VOCAB_SIZE=40000
 
@@ -21,7 +21,7 @@ NORMALIZE_NUMBERS=True
 NORMALIZE_PUNCT=1
 
 # OSCAR and OTHERS
-NDOC_FOR_LM_OSCAR=200_000
+NDOC_FOR_LM_OSCAR=10000
 
 
 train_language_and_dataset () {
@@ -79,6 +79,8 @@ train_language_and_dataset () {
         ./bin/spm_train --input="data/${dataset}/cirrus/gz/${lang}.opening.txt" \
             --vocab_size=${VOCAB_SIZE} --hard_vocab_limit \
             --character_coverage=0.9995 \
+            --input_sentence_size=100000 \
+            --shuffle_input_sentence=true \
             --model_type=unigram \
             --model_prefix="data/${dataset}/lm_sp/${lang}.sp" \
         || echo "WARNING: Corpus is too small, will train smaller model" && \

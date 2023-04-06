@@ -34,9 +34,10 @@ def dl(
     punct: int = 1,
     max_docs: Optional[int] = None,
     seed: int = 0,
-    buffer_size: int = 10000,
+    buffer_size: int = 100,
     text_key: str = "TEXT",
-    buffer_shuffle: bool = False
+    buffer_shuffle: bool = True,
+    max_num_lines : int = 1000000
 ):
     """Download dataset from the Hugging Face hub."""
     dataset = load_dataset(
@@ -77,21 +78,19 @@ def dl(
                     break
 
     # shuffle the sentences later
-    with open(output_file, "r") as f:
-        lines = f.readlines()
-
-    # filter lines
     print ("Filtering lines for english")
     filtered_lines = []
-    for line in tqdm(lines):
-        lang = cld3.get_language(line).language
+    with open(output_file, "r") as f:
+        for line in f:
+            lang = cld3.get_language(line).language
 
-        if lang == 'en':
-            filtered_lines.append(line)
+            if lang == 'en':
+                filtered_lines.append(line)
 
     # shuffle and write to disk
     print ("Shuffle and write to disk")
     random.shuffle(filtered_lines)
+    filtered_lines = filtered_lines[:max_num_lines]
 
     with open(output_file, "w") as f:
         for line in tqdm(filtered_lines):
